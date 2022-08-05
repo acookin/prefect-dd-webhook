@@ -1,0 +1,26 @@
+version: 2
+jobs:
+  build_push:
+    environment:
+      IMAGE_NAME: alixcook11/prefect-dd-webhook
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: build
+          command: docker build -t $IMAGE_NAME:`git rev-parse --short HEAD` .
+      - run:
+          name: push
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker push $IMAGE_NAME:`git rev-parse --short HEAD`
+workflows:
+  version: 2
+  buildimg:
+    jobs:
+      - build_push:
+          filters:
+            branches:
+              only: main
